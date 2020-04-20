@@ -1,0 +1,9 @@
+{
+    "uuid": "user@hko",
+    "name": "HKO",
+    "description": "Shows Hong Kong weather",
+    "prevent-decorations": false,
+    "d-font-size": "50pt",
+    "font-size": "18pt",
+    "temperature-place":"Hong Kong Observatory"
+}
