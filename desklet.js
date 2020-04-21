@@ -124,7 +124,7 @@ HkoDesklet.prototype = {
                 that.current_temp_text.set_text((temperature[0].value + "℃"));
                 that.current_humi_text.set_text(("Humidity: " + data.humidity.data[0].value + "%"));
                 that.current_rain_text.set_text(("Rainfall: " + rainfall[0].max + "mm"));
-                if(data.uvindex.length > 0){
+                if(data.uvindex.data.length > 0){
                     that.current_uvin_text.set_text(("UV index: " + data.uvindex.data[0].value + ", "+ data.uvindex.data[0].desc));
                 }
             }
