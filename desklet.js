@@ -83,7 +83,7 @@ HkoDesklet.prototype = {
         this._update_weather();
     },
     _set_config: function(metadata){
-        let center = 'text-align: center;';
+        let center = 'text-align: center;padding:20px 0;font-weight: 500;';
         this.current_temp_text.style = "font-size: " + metadata["d-font-size"]+";"+center;
         this.current_humi_text.style = "font-size: " + metadata["font-size"];
         this.current_uvin_text.style = "font-size: " + metadata["font-size"];
@@ -91,7 +91,6 @@ HkoDesklet.prototype = {
     },
     _tick: function() {
         this._update_weather();
-        this.timeout = Mainloop.timeout_add_seconds(60, this._tick.bind(this));
     },
     _update_weather: function(){
         global.log('update weather');
