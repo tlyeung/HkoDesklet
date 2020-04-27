@@ -9,6 +9,9 @@ const Mainloop = imports.mainloop;
 const UUID = "user@hko";
 const DESKLET_DIR = imports.ui.deskletManager.deskletMeta[UUID].path;
 
+imports.searchPath.push(DESKLET_DIR);
+const Marknote = imports.marknote;
+
 const _httpSession = new Soup.SessionAsync();
 _httpSession.timeout = 5;
 
@@ -33,13 +36,17 @@ HkoDesklet.prototype = {
         this.current_table = new St.Table();
         this.rhrread_table = new St.Table();
         this.forecast_table = new St.Table();
-        this.container = new St.BoxLayout({vertical: true, x_align: 2});
+        this.api_table = new St.Table();
+        this.container = new St.BoxLayout({vertical: true, x_align: 3});
 
         this.current_icon = new St.Button();
         this.current_temp_text = new St.Label();
         this.current_humi_text = new St.Label();
         this.current_uvin_text = new St.Label();
         this.current_rain_text = new St.Label();
+
+        this.current_apig_text = new St.Label();
+        this.current_apir_text = new St.Label();
 
         this.forecast_date = [];
         this.forecast_week = [];
@@ -72,13 +79,20 @@ HkoDesklet.prototype = {
         this.rhrread_table.add(this.current_humi_text,{row:row++,col:0});
         this.rhrread_table.add(this.current_rain_text,{row:row++,col:0});
         this.rhrread_table.add(this.current_uvin_text,{row:row++,col:0});
+
+        this.api_table.add(this.current_apig_text, {row:0, col:0});
+        this.api_table.add(this.current_apir_text, {row:1, col:0});
+
         this.table.add(this.current_table,  {row:0,col:0});
-        this.table.add(this.forecast_table, {row:1,col:0});
+        this.table.add(this.api_table, {row:1,col:0});
+        this.table.add(this.forecast_table, {row:2,col:0});
 
         this.container.add_actor(this.table);
         this.window.add_actor(this.container);
         this.setContent(this.window);
         this._set_config(metadata);
+
+        this.parser = new Marknote.marknote.Parser();
 
         this._update_weather();
     },
@@ -88,6 +102,8 @@ HkoDesklet.prototype = {
         this.current_humi_text.style = "font-size: " + metadata["font-size"];
         this.current_uvin_text.style = "font-size: " + metadata["font-size"];
         this.current_rain_text.style = "font-size: " + metadata["font-size"];
+        this.current_apig_text.style = "font-size: 16pt";
+        this.current_apir_text.style = "font-size: 16pt";
     },
     _tick: function() {
         this._update_weather();
@@ -96,6 +112,7 @@ HkoDesklet.prototype = {
         global.log('update weather');
         this._update_current_weather();
         this._update_fnd();
+        this._update_api();
         this._doLoop();
     },
     ////////////////////////////////////////////////////////////////////////////
@@ -126,6 +143,24 @@ HkoDesklet.prototype = {
                 if(data.uvindex.data.length > 0){
                     that.current_uvin_text.set_text(("UV index: " + data.uvindex.data[0].value + ", "+ data.uvindex.data[0].desc));
                 }
+            }
+        });
+    },
+    _update_api: function() {
+        var that = this;
+        let url = 'https://www.aqhi.gov.hk/epd/ddata/html/out/aqhirss_Eng.xml';
+        let message = Soup.Message.new("GET", url);
+        _httpSession.queue_message(message, function(session, message) {
+            if (message.status_code === 200) {
+                let xml = message.response_body.data;
+
+                let doc = that.parser.parse(xml);
+                let rootElem = doc.getRootElement();
+                let channel = rootElem.getChildElement("channel");
+                let items = channel.getChildElements("item");
+                let apis = items[0].getChildElement("description").getText().split('</p>');
+                that.current_apig_text.set_text(apis[0].replace('<p>',''));                
+                that.current_apir_text.set_text(apis[1].replace('<p>',''));
             }
         });
     },
